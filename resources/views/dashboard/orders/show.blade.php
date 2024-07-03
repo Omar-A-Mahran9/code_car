@@ -3949,7 +3949,7 @@
                         success: function(response) {
                             if (response && response.data) {
                                 if (response.data.length > 0) {
-                                    var imagePath = "{{ asset('storage/images/cars') }}/" + response
+                                    var imagePath = "{{ asset('storage/Images/cars') }}/" + response
                                         .data[0].main_image;
                                     $('#car-image').attr('src', imagePath);
                                     $('#car-name').text(response.data[0]
