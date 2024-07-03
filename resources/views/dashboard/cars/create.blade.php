@@ -140,11 +140,13 @@
                                         </div>
 
 
-                                         <!-- begin :: Column -->
+                                        <!-- begin :: Column -->
                                         <div class="col-md-3 fv-row">
 
                                             <label class="fs-5 fw-bold mb-2">{{ __('Colors') }}</label>
-                                            <select class="form-select" data-control="select2" id="colors-sp" name="colors[]" multiple data-placeholder="{{ __("Choose the color") }}" data-background-color="#000" data-dir="{{ isArabic() ? 'rtl' : 'ltr' }}">
+                                            <select class="form-select" data-control="select2" id="colors-sp"
+                                                name="colors[]" multiple data-placeholder="{{ __('Choose the color') }}"
+                                                data-background-color="#000" data-dir="{{ isArabic() ? 'rtl' : 'ltr' }}">
                                                 <!--<option value="" selected></option>-->
 
                                                 @foreach ($colors as $color)

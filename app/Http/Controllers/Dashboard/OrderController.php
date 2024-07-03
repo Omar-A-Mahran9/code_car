@@ -15,17 +15,20 @@ use App\Traits\NotificationTrait;
 use App\Models\Car;
 use App\Models\Brand;
 use App\Models\CarModel;
+use App\Models\CarOrder;
 use App\Models\City;
 use App\Models\Color;
 use App\Models\Nationality;
 use App\Models\Sector;
+use App\Models\Tag;
+use App\Rules\NotNumbersOnly;
 use Auth;
 use DB;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Session;
-
+use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
@@ -54,7 +57,56 @@ class OrderController extends Controller
 
         return view('dashboard.orders.index');
     }
+ 
+    public function filter_cars(Request $request)
+    {
+        // Check if all required inputs are present
+        if (!$request->has(['brand', 'model', 'category', 'color', 'year', 'gear_shifter'])) {
+            // Return an error response or an empty result
+            return response()->json(['error' => 'All filters are required'], 400);
+        }
     
+        // Initialize the query
+        $query = Car::query();
+    
+        // Apply filters
+        $query->where('brand_id', $request->input('brand'))
+        ->where('model_id', request('model'))
+        ->where('year', request('year'))
+        ->where('gear_shifter',request('gear_shifter'))
+        ->where('category_id',request('category'))
+        ->first();
+        // Get the first matching car or return null
+         $car=$query->first();
+         if($car){
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    [
+                        'main_image' => $car->main_image,
+                        'name' => $car->name,
+                        'selling_price' => $car->price_after_vat,
+                        'brand' => $car->brand,
+                        'model' => $car->model,
+                        'category' => $car->category,
+                        'color' => $car->color,
+                        'year' => $car->year,
+                        'gear_shifter' => __($car->gear_shifter),
+                        // Add any other fields you need
+                    ]
+                ]
+            ]);
+         }else{
+            $createCarUrl = route('dashboard.cars.create');
+            return response()->json([
+                'success' => false,
+                'message' => __('Sorry, this car not found. Please add it in the car section firstly from').'<a href="'.$createCarUrl.'">'." ".__('here').'</a>.'
+            ]);
+         }
+        // Return the results as JSON
+    }
+    
+
      public function create(Request $request)
     {
      $lang = Session::get('locale')??Config::get('app.locale');
@@ -93,8 +145,9 @@ public function orders_not_approval(Request $request)
         // Initialize query
         $query = Order::query();
 
-        // Exclude orders with IDs in the finance_approval table
-        $query->whereDoesntHave('finance_approval');
+     // Exclude orders with finance_approval or related orders with finance_approval
+        $query->whereDoesntHave('finance_approval')
+        ->whereDoesntHave('relatedOrders.finance_approval');
 
         // Apply filters based on user's role
         if ($hasRole1)
@@ -199,6 +252,17 @@ public function orders_not_approval(Request $request)
 
     public function show(Order $order)
     {
+        $finalapproval=Order::where('edited',true)->where('old_order_id',$order->id)->first();
+        $brands = Brand::select('id','name_' . getLocale())->get();
+        $cities = City::select('id','name_' . getLocale())->get();
+        // $categories=Category::select('id','name_' . getLocale())->get();
+        $colors = Color::select('id','image','name_' . getLocale(),'hex_code')->get();
+        $tags   = Tag::select('id','name_' . getLocale() )->get();
+        $banks  = Bank::select('id', 'name_'.getLocale())->where('type','bank')->get();
+        $sectors = Sector::get();
+        $nationality = Nationality::get();
+        $organizationTypes = OrganizationType::get();
+        $organizationactivities = Organizationactive::get();
         $precentage_approve = !$order['orderDetailsCar']['having_loan'] ? 45 : 65;
         $commitment         = $order['orderDetailsCar']['commitments'];
         $salary             = $order['orderDetailsCar']['salary'];
@@ -242,10 +306,197 @@ public function orders_not_approval(Request $request)
             }
         }
 
-        return view('dashboard.orders.show', compact('order', 'organization_activity', 'organization_type', 'employees', 'employee', 'precentage_approve', 'approve_amount'));
+        return view('dashboard.orders.show', compact('order', 'finalapproval','organization_activity', 'organization_type', 'employees', 'employee', 'precentage_approve', 'approve_amount','brands','colors','cities','tags','sectors','nationality','organizationTypes','organizationactivities','banks'));
     }
 
+    public function final_approval(Request $request){
+        $old_order = json_decode($request->old_order, true);
+    
+        $finalapproval=Order::where('edited',true)->where('old_order_id',$old_order['id'])->first();
+        if ($old_order['order_details_car']['type'] == 'individual')
+        {
+            $request->merge([
+                'driving_license' => filter_var($request->driving_license, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE),
+                'traffic_violations' => filter_var($request->traffic_violations, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE),
+                'department_loan' => filter_var($request->having_loan, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE),
+            ]);
+             $request->validate([
+                "brand" => "required|numeric",
+                "model" => "required|numeric",
+                "category" => "required|numeric",
+                "year" => "required|numeric",
+                "gear_shifter" => "required",
+                "color_id" => "required|numeric",
+                //personal
+                "client_name" =>['required' , 'string',new NotNumbersOnly],
+                'email' => ['bail', 'max:255'],
+                'phone' => ['bail', 'required', 'regex:/^((\+|00)966|0)?5[0-9]{8}$/'],
+                "sex" => "required",
+                'birth_date' => 'required|date|before_or_equal:' . Carbon::now()->subYears(16)->toDateString(),
+                "city_id"=>"required|numeric",
+                'identity_no' => 'nullable|unique:orders,identity_no,'. $old_order['id'],'|numeric|digits:10',
+                'sector'=>"required|numeric",
+                'salary'=>"required|numeric",
+                'bank'=>'required|numeric',
+                'Monthly_cometment'=>'required|numeric',
+                'driving_license' =>  ['required', 'boolean'],
+                'traffic_violations' =>  ['required', 'boolean'],
+                'department_loan' => ['required', 'boolean'],
+                'nationality_id'=>'required|numeric'
+              ]);
+              if ($old_order['order_details_car']['payment_type'] == 'finance'){
 
+              $request->validate([
+                       // finance
+                       "last_payment_value" => "required|numeric",
+                       "first_payment_value" => "required|numeric",
+                       "administrative_fees" => "required|numeric",
+                       "first_batch" => "required|numeric",
+                       "last_batch" => "required|numeric",
+                       "installment" => "required|numeric",
+                       "finance_amount" =>"required|numeric",
+                       "administrative_fees" =>"required|numeric",
+                       "monthely_installment" =>"required|numeric",
+              ]);
+             }
+              $car = Car::where('model_id', $request->model)
+                        ->where('brand_id', request('brand'))
+                        ->where('year', request('year'))
+                        ->where('gear_shifter',request('gear_shifter'))
+                        ->where('category_id',request('category'))
+                        ->first();
+            if($car!=null){
+                $ordersTableData = [
+                    // Orders Table Data
+                    'car_id' => $car->id,
+                    'color_id' => $request->color_id,
+                    'name' => $request->client_name,
+                    'email' => $request->email,
+                    'phone' => convertArabicNumbers($request->phone),
+                    'nationality_id' => $request->nationality_id,
+                    'identity_no' => $request->identity_no,
+                    'sex' => $request->sex,
+                    'price' => $car->getPriceAfterVatAttribute(),
+                    'car_name' => $car->name,
+                    'city_id' => $request->city_id,
+                    // CarOrder Table Data
+                    'payment_type' => 'cash',
+                    'salary' => $request->salary,
+                    'traffic_violations'=>$request->traffic_violations,
+                    'commitments' => $request->Monthly_cometment,
+                    'having_loan' => $request->department_loan,
+                    'driving_license' =>  $request->driving_license === '1'? 'available' : 'doesnt_exist',
+                    'birth_date' => $request->birth_date,
+                    'bank_id' => $request->bank,
+                    'sector_id' => $request->sector,
+            ];
+            if ($old_order['order_details_car']['payment_type'] == 'finance'){
+                $ordersTableData['payment_type']='finance';
+                $ordersTableData['first_installment']=$request->first_batch;
+                $ordersTableData['last_installment']=$request->last_batch;
+                $ordersTableData['installment']=$request->installment;
+            }
+            $ordersTableData['type'] = 'car';
+            $ordersTableData['car_name'] = $car->name;       
+            $ordersTableData['status_id'] = 7;
+            $ordersTableData['client_id'] = $car['vendor']['id'];
+            $ordersTableData['Adminstrative_fees'] =  $request->administrative_fees;
+            $ordersTableData['old_order_id'] =  $old_order['id'];
+            $ordersTableData['edited'] =  true;
+            $ordersTableData['edited_by'] =  auth()->id();
+ 
+
+
+            if ($finalapproval) {
+            // Update the existing order
+            $finalapproval->update($ordersTableData);
+            $order = $finalapproval->fresh(); // Retrieve the updated model instance
+            } else {
+            // Create a new order
+ 
+            $order = Order::create($ordersTableData);
+            }
+            $ordersTableData['first_payment_value'] = $request['first_payment_value'];
+            $ordersTableData['last_payment_value'] = $request['last_payment_value'];
+            $ordersTableData['finance_amount'] = $request['finance_amount'];
+            $ordersTableData['Adminstrative_fees'] = $request['administrative_fees'];
+            $ordersTableData['Monthly_installment'] = $request['monthely_installment'];
+            $ordersTableData['order_id'] = $order->id;
+            $ordersTableData['type'] = $old_order['order_details_car']['type'];
+
+
+
+            CarOrder::updateOrCreate(
+            ['order_id' => $order->id],
+            $ordersTableData
+            );
+
+            } else{
+                return $this->failure('car Not found');
+            }       
+         }
+ 
+     if ($old_order['order_details_car']['type'] == 'organization'){
+        $carOrdersTableData = $request->validate([
+            'organization_name' => ['required' , 'string',new NotNumbersOnly],
+            'organization_type' => ['bail', 'required', 'numeric'],
+            'commercial_registration_no' => ['required', 'nullable', 'numeric'],
+            'organization_activity' => ['bail', 'required', 'numeric'],
+            'name' => ['required' , 'string',new NotNumbersOnly],
+            'phone' => ['bail', 'required', 'regex:/^((\+|00)966|0)?5[0-9]{8}$/'],
+            'organization_age' => ['bail', 'required', 'min:1'],
+            'city_id' => ['bail', 'required', 'nullable'],
+            'bank_id' => ['bail', 'required', 'nullable', Rule::exists('banks', 'id')],
+            'car_count' => ['required', 'numeric', 'max:255'],
+
+          ]);  
+          $car = Car::where('model_id', $request->model)
+          ->where('brand_id', request('brand'))
+          ->where('year', request('year'))
+          ->where('gear_shifter',request('gear_shifter'))
+          ->where('category_id',request('category'))
+          ->first();
+          if ($car) {
+          $ordersTableData['type'] = 'car';
+          $ordersTableData['phone'] = convertArabicNumbers($carOrdersTableData['phone']);
+          $request->merge(['phone' => $ordersTableData['phone']]);
+          $ordersTableData['name'] = $carOrdersTableData['name'];
+          $ordersTableData['status_id'] = 1;
+          $ordersTableData['car_id'] = $car->id;
+          $ordersTableData['color_id'] = $request->color_id;
+          $ordersTableData['price'] = $car->getPriceAfterVatAttribute() * $carOrdersTableData['car_count'];
+          $ordersTableData['city_id'] = $carOrdersTableData['city_id'];
+          $ordersTableData['car_name'] = $car->name;
+          $ordersTableData['clint_id'] = Auth::user()->id ?? null; 
+          $ordersTableData['old_order_id'] =  $old_order['id'];
+          $ordersTableData['edited'] =  true;
+          $ordersTableData['edited_by'] =  auth()->id();
+
+          if ($finalapproval) {
+            // Update the existing order
+            $finalapproval->update($ordersTableData);
+            $order = $finalapproval->fresh(); // Retrieve the updated model instance
+            } else {
+            // Create a new order
+            $order = Order::create($ordersTableData);
+            }
+
+          $carOrdersTableData['type']         = $old_order['order_details_car']['type'];
+          $carOrdersTableData['payment_type'] = $old_order['order_details_car']['payment_type'];
+          $carOrdersTableData['order_id']     = $order->id;
+          $carOrdersTableData['car_count']    = $carOrdersTableData['car_count'];
+
+          CarOrder::updateOrCreate(
+            ['order_id' => $order->id],
+            $carOrdersTableData
+            );
+
+          }else{
+            return $this->failure('car Not found');
+            }  
+        }
+        
+    }
 
     public function destroy(Request $request, Order $order)
     {

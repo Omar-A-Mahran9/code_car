@@ -67,6 +67,48 @@ class CarController extends Controller
         $data=ModelResourse::collection( $model );
         return $this->success(data: $data);
     }
+    public function filter_cars(Request $request)
+    {
+        
+        // Check if all required inputs are present
+        if (!$request->has(['brand', 'model', 'category',  'year', 'gear_shifter'])) {
+            // Return an error response or an empty result
+            return response()->json(['error' => 'All filters are required'], 400);
+        }
+    
+        // Initialize the query
+        $query = Car::query();
+    
+        // Apply filters
+        $query->where('brand_id', $request->input('brand'))
+        ->where('brand_id', request('brand'))
+        ->where('year', request('year'))
+        ->where('gear_shifter',request('gear_shifter'))
+        ->where('category_id',request('category'))
+        ->first();
+        // Get the first matching car or return null
+         $car=$query->first();
+         if($car){
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    [
+                  
+                        'color' => $car->color->pluck('name','id'),
+                         
+                        // Add any other fields you need
+                    ]
+                ]
+            ]);
+         }else{
+            $createCarUrl = route('dashboard.cars.create');
+            return response()->json([
+                'success' => false,
+                'message' => __('Sorry, this car not found. Please add it in the car section firstly from').'<a href="'.$createCarUrl.'">'." ".__('here').'</a>.'
+            ]);
+         }
+        // Return the results as JSON
+    }
 
     public function CarOption(){
         $organizationTypes = OrganizationType::get();

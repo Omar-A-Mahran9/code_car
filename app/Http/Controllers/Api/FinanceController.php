@@ -333,22 +333,13 @@ class FinanceController extends Controller
           $ordersTableData['type'] = 'car';
           $ordersTableData['phone'] = convertArabicNumbers($carOrdersTableData['phone']);
           $request->merge(['phone' => $ordersTableData['phone']]);
-          // $request->validate([
-          //     'phone' => [
-          //         'required',
-          //          Rule::unique('orders', 'phone'),
-          //     ]
-          //     ]);
           $ordersTableData['name'] = $carOrdersTableData['name'];
           $ordersTableData['status_id'] = 1;
           $ordersTableData['car_id'] = $car->id;
           $ordersTableData['color_id'] = $request->color_id;
-
           $ordersTableData['price'] = $car->getPriceAfterVatAttribute() * $carOrdersTableData['car_count'];
           $ordersTableData['city_id'] = $carOrdersTableData['city_id'];
-          ;
           $ordersTableData['car_name'] = $car->name;
-
           $ordersTableData['clint_id'] = Auth::user()->id ?? null;
 
           DB::beginTransaction();
@@ -483,14 +474,7 @@ class FinanceController extends Controller
 
   public function financeOrder(Request $request)
   {
-    // if(auth()->check()){
-    //   dd( 'omaar');
-    // }
-    // else{
-    //   dd( 'notlogin');
-
-    // }
-
+   
     $step = $request->input('step');
     if (request('type') == 'individual')
     {

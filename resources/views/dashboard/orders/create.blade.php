@@ -141,7 +141,7 @@
                                                 <!-- begin :: Row -->
                                                 <div class="row mb-10">
                                                     <input type="hidden" name="type" value="individual">
-                                                    <input type="hidden" name="language" value={{$lang}}>
+                                                    <input type="hidden" name="language" value={{ $lang }}>
 
                                                     <!-- begin :: Column -->
                                                     <div class="col-md-6 fv-row mb-3">
@@ -384,27 +384,17 @@
                                                         <p class="invalid-feedback" id="client_name"></p>
                                                     </div>
 
-                                                    <!-- Phone number -->
-                                                    <!--<div class="col-md-6 fv-row mb-5">-->
-                                                    <!--    <label class="fs-5 fw-bold mb-2">{{ __('Phone number') }}</label>-->
-                                                    <!--    <div class="form-floating">-->
-                                                    <!--        <input type="text" class="form-control"-->
-                                                    <!--            id="phone_number_inp" name="phone"-->
-                                                    <!--            placeholder="example" />-->
-                                                    <!--        <label for="phone_number_inp">{{ __('Phone number') }}</label>-->
-                                                    <!--    </div>-->
-                                                    <!--    <p class="invalid-feedback" id="phone"></p>-->
-                                                    <!--</div>-->
-                                                     <!-- begin :: Column -->
+                                        
                                                     <div class="col-md-6 fv-row">
-                            
+
                                                         <label class="fs-5 fw-bold mb-2">{{ __('Phone') }}</label>
                                                         <div class="input-group mb-5">
                                                             <span class="input-group-text" id="basic-addon1">+966</span>
-                                                            <input type="text" class="form-control" id="phone_inp" name="phone"
-                                                                placeholder="{{ __('Enter the phone') }}" maxlength="10"/>
+                                                            <input type="text" class="form-control" id="phone_inp"
+                                                                name="phone" placeholder="{{ __('Enter the phone') }}"
+                                                                maxlength="10" />
                                                             <p class="invalid-feedback" id="phone"></p>
-                            
+
                                                         </div>
                                                     </div>
                                                     <!-- end   :: Column -->
@@ -431,11 +421,10 @@
                                                         <label class="fs-5 fw-bold mb-2">{{ __('Birthdate') }}</label>
                                                         <input name="birth_date" type='date'
                                                             class="form-select border-gray-300 border-1  me-4"
-                                                            placeholder="{{ __('Choose the date') }}"
-                                                             />
+                                                            placeholder="{{ __('Choose the date') }}" />
                                                         <p class="invalid-feedback" id="birth_date"></p>
                                                     </div>
-                                                    
+
 
 
 
@@ -830,7 +819,7 @@
                                             <div class="w-100">
                                                 <!-- begin :: Row -->
                                                 <input type="hidden" name="type" value="organization">
-                                                <input type="hidden" name="language" value={{$lang}}>
+                                                <input type="hidden" name="language" value={{ $lang }}>
 
                                                 <div id="cars-container">
                                                     <div id="car-0">
@@ -1267,7 +1256,6 @@
 
 @endsection
 @push('scripts')
-
     <script>
         function appendRow(num) {
             $new_number = parseInt(num) + 1;

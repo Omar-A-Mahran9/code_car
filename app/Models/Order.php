@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,11 +11,17 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Order extends Model
 {
     use HasFactory,SoftDeletes;
-    protected $fillable = ['id','name','email', 'phone','sex','employee_id','price','nationality_id','identity_no', 'car_name', 'car_id','color_id', 'city_id', 'type', 'identity_Card', 'License_Card','Hr_Letter_Image','Insurance_Image','status_id', 'client_id','opened_at','opened_by','birth_date','verified','verified_at'];
+    protected $fillable = ['id','name','email', 'phone','sex','employee_id','price','nationality_id','identity_no', 'car_name', 'car_id','color_id', 'city_id', 'type', 'identity_Card', 'License_Card','Hr_Letter_Image','Insurance_Image','status_id', 'client_id','opened_at','opened_by','birth_date','verified','verified_at','old_order_id','edited','edited_by'];
     protected $casts   = [
         'created_at' => 'date:Y-m-d',
         'updated_at' => 'date:Y-m-d'
     ];
+    // protected static function booted()
+    // {
+    //     static::addGlobalScope('notEdited', function (Builder $builder) {
+    //         $builder->where('edited', 0);
+    //     });
+    // }
     public function vendor()
     {
         return $this->belongsTo(Vendor::class);
@@ -55,6 +62,10 @@ class Order extends Model
     {
         return $this->belongsTo(Employee::class,'opened_by');
     }
+    public function employee_edit()
+    {
+        return $this->belongsTo(Employee::class,'edited_by');
+    }
     
       public function finance_approval()
     {
@@ -65,6 +76,10 @@ class Order extends Model
     {
         return $this->belongsTo(SettingOrderStatus::class,'status_id');
     }
+    public function relatedOrders()
+        {
+            return $this->hasMany(Order::class, 'old_order_id', 'id');
+        }
     
     public function sendOTP()
     {
@@ -75,6 +90,7 @@ class Order extends Model
 
         $this->save();
     }
+
 
     public function verifyOTP($verification_code)
     {

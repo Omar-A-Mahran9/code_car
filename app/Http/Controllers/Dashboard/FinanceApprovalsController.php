@@ -35,22 +35,46 @@ class FinanceApprovalsController extends Controller
     {
         $this->authorize('create_finance_approvals');
         if ($request->ajax()) {
-            $finance = FinanceApproval::where('order_id', $request->order_id)->first();
-            if($finance){
-                $order = true;
-            }else{
-                $orderdata = Order::with('city', 'color','car', 'bank','orderDetailsCar','orderDetailsCar.bank')->find($request->order_id);
-               
-                if(isset($orderdata)&&$orderdata->status_id==7){
-                    $order=Order::with('city', 'color','car', 'bank','orderDetailsCar','orderDetailsCar.bank')->find($request->order_id);
+            $order=Order::find($request->order_id);
+            if(isset($order)){
+                                // Fetch the order and its related orders
+                $order = Order::with('relatedOrders')->find($request->order_id);
+                // Collect all relevant order IDs
+                $orderIds = collect([$order->id])->merge($order->relatedOrders->pluck('id'));
+
+                // Check if any of these orders have a finance approval
+                $finance = FinanceApproval::whereIn('order_id', $orderIds)->first();
+
+                // Determine if there is a finance approval for the order or any related orders
+                $hasFinanceApproval = $finance ? true : false;
+
+                if ($hasFinanceApproval) {
+                    $order = true;
+
+                }else{
+                    $orderdata = Order::with('city', 'color','car', 'bank','orderDetailsCar','orderDetailsCar.bank')->find($request->order_id);
+                    $finalapproval = Order::where('edited', 1)
+                    ->where('old_order_id', $orderdata->id)
+                    ->orderBy('updated_at', 'desc')
+                    ->first();
+                    if(isset($finalapproval) && $orderdata->status_id==7){
+                        $order=Order::with('city', 'color','car', 'bank','orderDetailsCar','orderDetailsCar.bank')->where('edited', 1)->where('old_order_id', $orderdata->id)->orderBy('updated_at', 'desc')->first();
+                    }
+                    elseif(isset($orderdata)&&$orderdata->status_id==7){
+                        $order=Order::with('city', 'color','car', 'bank','orderDetailsCar','orderDetailsCar.bank')->find($request->order_id);
+                    }
+                    else{
+                            $order = null;  
+                    }
                 }
-                else{
-                    $order = null;  
-                }
-               
+                return response()->json($order);
+            
             }
-             return response()->json($order);
-        }
+            else{
+                return $order;
+            }
+
+            }
       
         $orders = Order::get();
         $delegates = Delegate::get();
@@ -62,24 +86,14 @@ class FinanceApprovalsController extends Controller
         $financeApproval=FinanceApproval::findOrFail($id);
         return view('dashboard.finance_approvals.pdf',compact('financeApproval'));
     }
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \App\Http\Requests\StoreFinanceApprovalsRequest  $request
-     * @return \Illuminate\Http\Response
-     */
+
     public function store(StoreFinanceApprovalsRequest $request)
     {   $this->authorize('create_finance_approvals');
         $data = $request->validated();
          FinanceApproval::create($data);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\FinanceApprovals  $financeApprovals
-     * @return \Illuminate\Http\Response
-     */
+
     public function show(FinanceApproval $financeApproval)
     {
         $this->authorize('show_finance_approvals');

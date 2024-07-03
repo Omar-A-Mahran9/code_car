@@ -100,6 +100,7 @@ Route::group(['middleware' => ['json.response']], function () {
     // -------------------------- News --------------------------------
     Route::get('/news/show/{id}', 'Api\NewsController@show');
 
+    Route::post('/filter-cars', [CarController::class, 'filter_cars']);
 
     // -------------------------------------------------------
 
