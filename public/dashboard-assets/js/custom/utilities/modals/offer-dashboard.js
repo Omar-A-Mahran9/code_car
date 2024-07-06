@@ -90,6 +90,8 @@ var KTCreateAccount = (function () {
   <div class="card-body p-4">
     <div class="d-flex align-items-center mb-4 text-start ">
         <i class="fa fa-tag fs-2hx text-success me-3"></i>
+              <h6 class="mb-0 fw-bold">${offer.OfferName.id}</h6>
+
       <h6 class="mb-0 fw-bold">${offer.OfferName.title}</h6>
     </div>
       <div class="row text-start justify-content-between">

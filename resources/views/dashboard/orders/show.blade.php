@@ -54,13 +54,14 @@
                 </li>
                 <!--end:::Tab item-->
                 <!--begin:::Tab item-->
-
-                @if ($order && $order['orderDetailsCar']['cars'] == null)
-                    <li class="nav-item">
-                        <a class="nav-link text-active-primary pb-4" data-bs-toggle="tab"
-                            href="#kt_ecommerceـfinal_approval">{{ __('Fianl Approval') }}</a>
-                    </li>
-                @endif
+                @can('update_orders')
+                    @if ($order && $order['orderDetailsCar']['cars'] == null)
+                        <li class="nav-item">
+                            <a class="nav-link text-active-primary pb-4" data-bs-toggle="tab"
+                                href="#kt_ecommerceـfinal_approval">{{ __('Fianl Approval') }}</a>
+                        </li>
+                    @endif
+                @endcan
                 <!--end:::Tab item-->
             </ul>
             <!--end:::Tabs-->

@@ -172,6 +172,7 @@ trait Calculations{
                 'calculator_data' => json_encode($request->toArray()),
                 'needed_fun'=>'calculator',
                 'sex'=>$request->sex,
+                'tax'=>settings()->getSettings('tax')/100,
                 'insurance_female'=>settings()->getSettings('females_insurance'),
                 'insurance_man'=>settings()->getSettings('males_insurance'),
                 'src_ur'=>$currentUrl,
@@ -195,6 +196,7 @@ trait Calculations{
                 $insurancePrice = $data['result']['insurancePrice'];
                 $fundingAmountIncludeBenefit=$data['result']['fundingAmountIncludeBenefit'];
                 $monthlyInstallment=$data['result']['monthlyInstallment'];
+ 
             } else {
                  abort(500, 'Failed to retrieve the PHP code from the external URL.');
             }
@@ -212,7 +214,7 @@ trait Calculations{
                 'sectorAdministrative_fees'=> round($Adminstrativefeecost),
                 'bank_offer_id'=>$offer->bank_offer_id,
                 'car' => $carDetails,
-                // 'bank' =>  $bank
+                'price' =>  $price
             ];
 
             $AllAvailableOffers[] = $result;
