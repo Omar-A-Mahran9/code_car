@@ -178,7 +178,7 @@
 
 
                     </div>
-                    <div class="separator separator-content border-dark my-10"><span
+                    {{-- <div class="separator separator-content border-dark my-10"><span
                             class="w-250px fw-bold">{{ __('Bank Actions With Sectors') }}</span></div>
                     @foreach ($bankSectors as $slug => $bankSector)
                         <span class="badge badge-info mb-9">{{ $bankSector['name_ar'] }}</span>
@@ -241,7 +241,7 @@
                             <!-- end   :: Column -->
                         </div>
                         <!-- end   :: Row -->
-                    @endforeach
+                    @endforeach --}}
 
                 </div>
                 <!-- end   :: Inputs wrapper -->

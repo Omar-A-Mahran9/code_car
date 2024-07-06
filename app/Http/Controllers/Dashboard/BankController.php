@@ -40,7 +40,7 @@ class BankController extends Controller
         }
         $data['image'] = uploadImage( $request->file('image') ,"Banks");
         $bank =Bank::create($data);
-        $bank->attachSectors($data);
+        // $bank->attachSectors($data);
     }
 
     public function validateRequestData()
@@ -85,7 +85,7 @@ class BankController extends Controller
         }
         $data['image'] = $this->updateImage($bank->image);
         $bank->update($data);
-        $bank->attachSectors($data);
+        // $bank->attachSectors($data);
     }
 
     public function validateRequestForEditing($bankId)
