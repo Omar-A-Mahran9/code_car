@@ -242,7 +242,6 @@
                         </div>
                         <!-- end   :: Row -->
                     @endforeach --}}
-
                 </div>
                 <!-- end   :: Inputs wrapper -->
 
