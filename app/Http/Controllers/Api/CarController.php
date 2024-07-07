@@ -89,16 +89,17 @@ class CarController extends Controller
         // Get the first matching car or return null
          $car=$query->first();
          if($car){
+            $data = $car->color->map(function($color) {
+                return [
+                    'id' => $color->id,
+                    'title' => $color->name,
+                ];
+            })->toArray();
+            
             return response()->json([
                 'success' => true,
-                'data' => [
-                    [
-                  
-                        'color' => $car->color->pluck('name','id'),
-                         
-                        // Add any other fields you need
-                    ]
-                ]
+                'data' => $data,
+                // Add any other fields you need
             ]);
          }else{
             $createCarUrl = route('dashboard.cars.create');
