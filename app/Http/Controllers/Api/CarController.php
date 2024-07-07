@@ -104,7 +104,10 @@ class CarController extends Controller
             $createCarUrl = route('dashboard.cars.create');
             return response()->json([
                 'success' => false,
-                'message' => __('Sorry, this car not found. Please add it in the car section firstly from').'<a href="'.$createCarUrl.'">'." ".__('here').'</a>.'
+                'data' => [
+            
+                    ],
+               
             ]);
          }
         // Return the results as JSON
