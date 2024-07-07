@@ -393,7 +393,7 @@
   "active": "مـفعل",
   "inactive": "غير مـفعل",
   "Orders": "الطلبات",
-  "Orders Not approval": "طلبات لم يتم تعميدها",
+  "Ready for financial approval": "طلبات جاهزة للتعميد",
   "name": "الأسـم",
   "phone": "رقـم الهاتف",
   "Status": "الحالة",
