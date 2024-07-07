@@ -412,7 +412,7 @@
                         <label class="form-label">{{ __('Females') }}</label>
                         <input type="number" class="form-control" name="females_insurance"
                             value="{{ settings()->getSettings('females_insurance') ?? 6.75 }}" id="females_insurance_inp"
-                            placeholder="{{ __('Enter the females insurance in percentage') }}"  step="0.001">
+                            placeholder="{{ __('Enter the females insurance in percentage') }}" step="0.001">
                         <p class="invalid-feedback" id="females_insurance"></p>
 
                     </div>
@@ -504,13 +504,13 @@
                                                         id="orders_statuss_{{ $loop->index }}_color"></p>
                                                 </div>
 
-                                                <div class="col-md-3 text-center">
+                                                {{-- <div class="col-md-3 text-center">
                                                     <a href="javascript:" data-repeater-delete
                                                         onclick="deleteId('{{ $status['id'] }}')"
                                                         class="btn btn-sm btn-light-danger mt-4 mt-md-9">
                                                         <i class="la la-trash-o"></i>{{ __('Delete') }}
                                                     </a>
-                                                </div>
+                                                </div> --}}
                                             </div>
                                         </div>
                                     @endforeach
@@ -549,7 +549,7 @@
             <div class="card-header pt-8">
 
                 <div class="card-title">
-                    <h2>{{__("Seo")}}</h2>
+                    <h2>{{ __('Seo') }}</h2>
                 </div>
 
                 <div class="card-title">
@@ -1794,7 +1794,7 @@
                 <!--</div>-->
                 <!-- End   :: Input group --
 
-                                                                                                                                                                                                                                                                                         Begin   :: Input group -->
+                                                                                                                                                                                                                                                                                             Begin   :: Input group -->
                 <div class="fv-row row mb-15">
 
                     <!-- Begin :: Col -->
